@@ -24,7 +24,7 @@ const Dropdown = ({ label = 'Pilih opsi', options = [], onSelect }) => {
 
   return (
     <div className="relative inline-block" ref={ref}>
-      <Button type="button" onClick={() => setOpen((prev) => !prev)} className="w-32 justify-between h-10 px-4 py-3">
+      <Button type="button" onClick={() => setOpen((prev) => !prev)} className=" w-38 justify-between h-10 px-4 py-3">
         <span className="truncate">{selected ? selected.label : label}</span>
       </Button>
 
