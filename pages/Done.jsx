@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getCurrentUser } from '../src/utils/auth';
 
-const HistoryPage = () => {
+const DonePage = () => {
   const user = getCurrentUser();
   const HISTORY_KEY = `history_${user.username}`;
   const [history, setHistory] = useState([]);
@@ -34,4 +34,4 @@ const HistoryPage = () => {
   );
 };
 
-export default HistoryPage;
+export default DonePage;

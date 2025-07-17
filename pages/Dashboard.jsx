@@ -20,7 +20,6 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-black">
       <Navbar user={user} onLogout={handleLogout} onProfile={handleProfile} />
-      <SearchBar />
       <NotesPage />
     </div>
   );
