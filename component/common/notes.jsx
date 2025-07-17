@@ -71,7 +71,7 @@ const NotesPage = () => {
     const storedHistory = localStorage.getItem(HISTORY_KEY);
     const history = storedHistory ? JSON.parse(storedHistory) : [];
     localStorage.setItem(HISTORY_KEY, JSON.stringify([...history, note]));
-    deleteNote(note.id, true); // skipConfirm = true
+    deleteNote(note.id, true);
   };
 
   const resetForm = () => {
@@ -86,6 +86,13 @@ const NotesPage = () => {
     setSearchKeyword(searchInput);
   };
 
+  /** Update note **/
+  const updateNote = (updatedNote) => {
+    const updatedNotes = notes.map((n) => (n.id === updatedNote.id ? updatedNote : n));
+    setNotes(updatedNotes);
+    setDetailNote(null);
+  };
+
   /** Filtering & Pagination **/
   const filteredNotes = notes.filter((note) => {
     const matchesSearch = note.title.toLowerCase().includes(searchKeyword.toLowerCase()) || note.content.toLowerCase().includes(searchKeyword.toLowerCase());
@@ -94,6 +101,13 @@ const NotesPage = () => {
   });
 
   const totalPages = Math.ceil(filteredNotes.length / NOTES_PER_PAGE);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages || 1);
+    }
+  }, [currentPage, totalPages]);
+
   const indexOfLastNote = currentPage * NOTES_PER_PAGE;
   const indexOfFirstNote = indexOfLastNote - NOTES_PER_PAGE;
   const currentNotes = filteredNotes.slice(indexOfFirstNote, indexOfLastNote);
@@ -129,7 +143,7 @@ const NotesPage = () => {
         />
       )}
 
-      {detailNote && <DetailModal note={detailNote} onClose={() => setDetailNote(null)} />}
+      {detailNote && <DetailModal note={detailNote} onClose={() => setDetailNote(null)} onUpdate={updateNote} />}
     </div>
   );
 };
@@ -228,19 +242,32 @@ const AddModal = ({ onClose, onSubmit, noteTitle, setNoteTitle, noteContent, set
   </div>
 );
 
-const DetailModal = ({ note, onClose }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white dark:bg-black border-2 border-black dark:border-white rounded-xl shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-6 w-full max-w-md">
-      <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Detail</h2>
-      <p className="text-black dark:text-white mb-2 font-bold">Title: {note.title}</p>
-      <p className="text-black dark:text-white mb-2">Content: {note.content}</p>
-      <p className="text-black dark:text-white mb-2">Priority: {note.priority}</p>
-      <p className="text-black dark:text-white mb-4">Type: {note.type}</p>
-      <Button variant="secondary" onClick={onClose}>
-        Close
-      </Button>
+const DetailModal = ({ note, onClose, onUpdate }) => {
+  const [title, setTitle] = useState(note.title);
+  const [content, setContent] = useState(note.content);
+
+  const handleSave = () => {
+    const updatedNote = { ...note, title, content };
+    onUpdate(updatedNote);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-black border-2 border-black dark:border-white rounded-xl shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-6 w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Detail</h2>
+        <FormInput label="Title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <FormTextarea label="Content" value={content} onChange={(e) => setContent(e.target.value)} required />
+        <p className="text-black dark:text-white mb-2">Priority: {note.priority}</p>
+        <p className="text-black dark:text-white mb-4">Type: {note.type}</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={onClose}>
+            Close
+          </Button>
+          <Button onClick={handleSave}>Save</Button>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default NotesPage;
