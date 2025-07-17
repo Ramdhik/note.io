@@ -22,15 +22,11 @@ const SearchInput = ({ value, onChange, placeholder }) => (
   <input type="text" value={value} onChange={onChange} placeholder={placeholder} className="flex-1 bg-white dark:bg-black border-none focus:outline-none font-bold text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400" />
 );
 
-const SearchButton = () => (
-  <Button type="submit" variant="primary" className="px-4 py-2" icon={<SearchIcon className="w-4 h-4" />}>
-    {/* Icon only button, no text */}
-  </Button>
-);
+const SearchButton = () => <Button type="submit" variant="primary" className="px-4 py-2" icon={<SearchIcon className="w-4 h-5" />}></Button>;
 
 const FilterDropdown = ({ onSelect }) => (
   <Dropdown
-    icon={<FilterIcon className="w-4 h-4" />}
+    icon={<FilterIcon className=" items-center align-middle" />}
     variant="checkbox"
     options={[
       { value: 'all', label: 'All' },
