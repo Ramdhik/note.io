@@ -3,6 +3,7 @@ import Home from '../pages/Home';
 import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
 import DonePage from '../pages/Done';
+import ProfilePage from '../pages/Profile';
 
 function App() {
   return (
@@ -11,6 +12,8 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/done" element={<DonePage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      {/* Add other routes as needed */}
     </Routes>
   );
 }

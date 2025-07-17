@@ -1,11 +1,14 @@
 import React from 'react';
 import Button from '../ui/button';
 import Dropdown from '../ui/dropdown';
-import { FilterIcon } from 'lucide-react';
+import { FilterIcon, Search as SearchIcon } from 'lucide-react';
 
 const SearchBar = ({ value, onChange, onSubmit, placeholder = 'Search...', onFilterSelect }) => {
   return (
-    <form onSubmit={onSubmit} className="mt-5 flex items-center gap-2 bg-white dark:bg-black border-2 border-black dark:border-white rounded-xl shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] px-4 py-2 w-full max-w-md">
+    <form
+      onSubmit={onSubmit}
+      className="mt-5 flex flex-col md:flex-row items-stretch md:items-center gap-2 bg-white dark:bg-black border-2 border-black dark:border-white rounded-xl shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] px-4 py-2 w-full max-w-md"
+    >
       <SearchInput value={value} onChange={onChange} placeholder={placeholder} />
       <SearchButton />
       <FilterDropdown onSelect={onFilterSelect} />
@@ -20,8 +23,8 @@ const SearchInput = ({ value, onChange, placeholder }) => (
 );
 
 const SearchButton = () => (
-  <Button type="submit" variant="primary" className="px-4 py-2">
-    Search
+  <Button type="submit" variant="primary" className="px-4 py-2" icon={<SearchIcon className="w-4 h-4" />}>
+    {/* Icon only button, no text */}
   </Button>
 );
 

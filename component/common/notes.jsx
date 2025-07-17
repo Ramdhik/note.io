@@ -5,10 +5,12 @@ import Form, { FormInput, FormTextarea } from '../ui/form';
 import Dropdown from '../ui/dropdown';
 import { getCurrentUser } from '../../src/utils/auth';
 import SearchBar from '../common/search';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const NotesPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const user = getCurrentUser();
   const STORAGE_KEY = `notes_${user.username}`;
   const HISTORY_KEY = `history_${user.username}`;
@@ -17,8 +19,8 @@ const NotesPage = () => {
   const [notes, setNotes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [detailNote, setDetailNote] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [filterOption, setFilterOption] = useState('all');
@@ -29,21 +31,37 @@ const NotesPage = () => {
   const [priority, setPriority] = useState(null);
   const [type, setType] = useState(null);
 
-  // Load notes
+  /** Load state from query string on first render **/
+  useEffect(() => {
+    const page = parseInt(searchParams.get('page')) || 1;
+    const keyword = searchParams.get('search') || '';
+    const filter = searchParams.get('filter') || 'all';
+
+    setCurrentPage(page);
+    setSearchInput(keyword);
+    setSearchKeyword(keyword);
+    setFilterOption(filter);
+  }, []); // run once on mount
+
+  // Load notes from localStorage
   useEffect(() => {
     const storedNotes = localStorage.getItem(STORAGE_KEY);
     if (storedNotes) setNotes(JSON.parse(storedNotes));
   }, [STORAGE_KEY]);
 
-  // Save notes
+  // Save notes to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
   }, [notes, STORAGE_KEY]);
 
-  // Pagination reset
+  /** Sync state ➔ URL **/
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchKeyword, filterOption]);
+    setSearchParams({
+      page: currentPage,
+      search: searchKeyword,
+      filter: filterOption,
+    });
+  }, [currentPage, searchKeyword, filterOption, setSearchParams]);
 
   /** Handlers **/
   const addNote = (e) => {
@@ -83,14 +101,8 @@ const NotesPage = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setCurrentPage(1);
     setSearchKeyword(searchInput);
-  };
-
-  /** Update note **/
-  const updateNote = (updatedNote) => {
-    const updatedNotes = notes.map((n) => (n.id === updatedNote.id ? updatedNote : n));
-    setNotes(updatedNotes);
-    setDetailNote(null);
   };
 
   /** Filtering & Pagination **/
@@ -101,13 +113,6 @@ const NotesPage = () => {
   });
 
   const totalPages = Math.ceil(filteredNotes.length / NOTES_PER_PAGE);
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages || 1);
-    }
-  }, [currentPage, totalPages]);
-
   const indexOfLastNote = currentPage * NOTES_PER_PAGE;
   const indexOfFirstNote = indexOfLastNote - NOTES_PER_PAGE;
   const currentNotes = filteredNotes.slice(indexOfFirstNote, indexOfLastNote);
@@ -117,8 +122,17 @@ const NotesPage = () => {
     <div className="relative bg-white dark:bg-black p-6 mt-1 min-h-screen">
       <div className="flex justify-between items-center">
         <SearchBar value={searchInput} onChange={(e) => setSearchInput(e.target.value)} onSubmit={handleSearchSubmit} placeholder="Search notes..." onFilterSelect={(option) => setFilterOption(option.value)} />
-        <Button icon={<CheckCircle className="w-4 h-4" />} onClick={() => navigate('/done')} className="ml-4">
-          Done
+
+        <div className="hidden md:block">
+          <Button icon={<CheckCircle className="w-4 h-4" />} onClick={() => navigate('/done')} className="ml-4">
+            Done
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-4 md:hidden">
+        <Button onClick={() => setShowModal(true)} icon={<Plus />} className="w-full">
+          Add
         </Button>
       </div>
 
@@ -126,7 +140,11 @@ const NotesPage = () => {
 
       <Pagination currentPage={currentPage} totalPages={totalPages} onPrev={() => setCurrentPage((p) => Math.max(p - 1, 1))} onNext={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} />
 
-      <AddButton onClick={() => setShowModal(true)} />
+      <div className="hidden md:block fixed bottom-10 right-6">
+        <Button onClick={() => setShowModal(true)} icon={<Plus />} className="rounded-full p-4">
+          Add
+        </Button>
+      </div>
 
       {showModal && (
         <AddModal
@@ -143,13 +161,12 @@ const NotesPage = () => {
         />
       )}
 
-      {detailNote && <DetailModal note={detailNote} onClose={() => setDetailNote(null)} onUpdate={updateNote} />}
+      {detailNote && <DetailModal note={detailNote} onClose={() => setDetailNote(null)} />}
     </div>
   );
 };
 
 /** Sub Components **/
-
 const NotesList = ({ notes, onDetail, onDone, onDelete }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
     {notes.map((note) => (
@@ -193,14 +210,6 @@ const Pagination = ({ currentPage, totalPages, onPrev, onNext }) => {
   );
 };
 
-const AddButton = ({ onClick }) => (
-  <div className="fixed bottom-10 right-6">
-    <Button onClick={onClick} icon={<Plus />} className="rounded-full p-4">
-      Add
-    </Button>
-  </div>
-);
-
 const AddModal = ({ onClose, onSubmit, noteTitle, setNoteTitle, noteContent, setNoteContent, setPriority, setType }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white dark:bg-black border-2 border-black dark:border-white rounded-xl shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-6 w-full max-w-md">
@@ -242,32 +251,19 @@ const AddModal = ({ onClose, onSubmit, noteTitle, setNoteTitle, noteContent, set
   </div>
 );
 
-const DetailModal = ({ note, onClose, onUpdate }) => {
-  const [title, setTitle] = useState(note.title);
-  const [content, setContent] = useState(note.content);
-
-  const handleSave = () => {
-    const updatedNote = { ...note, title, content };
-    onUpdate(updatedNote);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-black border-2 border-black dark:border-white rounded-xl shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-6 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Detail</h2>
-        <FormInput label="Title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
-        <FormTextarea label="Content" value={content} onChange={(e) => setContent(e.target.value)} required />
-        <p className="text-black dark:text-white mb-2">Priority: {note.priority}</p>
-        <p className="text-black dark:text-white mb-4">Type: {note.type}</p>
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>
-            Close
-          </Button>
-          <Button onClick={handleSave}>Save</Button>
-        </div>
-      </div>
+const DetailModal = ({ note, onClose }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-black border-2 border-black dark:border-white rounded-xl shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff] p-6 w-full max-w-md">
+      <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Detail</h2>
+      <p className="text-black dark:text-white mb-2 font-bold">Title: {note.title}</p>
+      <p className="text-black dark:text-white mb-2">Content: {note.content}</p>
+      <p className="text-black dark:text-white mb-2">Priority: {note.priority}</p>
+      <p className="text-black dark:text-white mb-4">Type: {note.type}</p>
+      <Button variant="secondary" onClick={onClose}>
+        Close
+      </Button>
     </div>
-  );
-};
+  </div>
+);
 
 export default NotesPage;
