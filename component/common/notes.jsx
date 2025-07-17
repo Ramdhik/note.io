@@ -13,7 +13,7 @@ const NotesPage = () => {
 
   const user = getCurrentUser();
   const STORAGE_KEY = `notes_${user.username}`;
-  const HISTORY_KEY = `history_${user.username}`;
+  const DONE_KEY = `done_${user.username}`;
   const NOTES_PER_PAGE = 6;
 
   const [notes, setNotes] = useState([]);
@@ -86,9 +86,9 @@ const NotesPage = () => {
   };
 
   const markAsDone = (note) => {
-    const storedHistory = localStorage.getItem(HISTORY_KEY);
-    const history = storedHistory ? JSON.parse(storedHistory) : [];
-    localStorage.setItem(HISTORY_KEY, JSON.stringify([...history, note]));
+    const storedDone = localStorage.getItem(DONE_KEY);
+    const done = storedDone ? JSON.parse(storedDone) : [];
+    localStorage.setItem(DONE_KEY, JSON.stringify([...done, note]));
     deleteNote(note.id, true);
   };
 
