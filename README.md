@@ -1,7 +1,3 @@
-Berikut **README.md** versi lengkap dengan penambahan informasi login demo:
-
----
-
 # Note IO
 
 Note IO adalah aplikasi web untuk mencatat ide, tugas, dan catatan harian dengan antarmuka minimalis dan pengalaman pengguna yang intuitif. Website ini dibangun untuk membantu pengguna mengatur berbagai catatan mereka dengan cepat, mudah, dan terstruktur.
